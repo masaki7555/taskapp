@@ -15,6 +15,7 @@ class InputViewController: UIViewController {
     @IBOutlet weak var titleTextfield: UITextField!
     @IBOutlet weak var contentsTextView: UITextView!
     @IBOutlet weak var datePicker: UIDatePicker!
+    @IBOutlet weak var categoryTextView: UITextField!
     
     var task: Task!
     let realm = try! Realm()
@@ -26,6 +27,7 @@ class InputViewController: UIViewController {
         titleTextfield.text = task.title
         contentsTextView.text = task.contents
         datePicker.date = task.date
+        categoryTextView.text = task.category
         // Do any additional setup after loading the view.
     }
 
@@ -39,6 +41,7 @@ class InputViewController: UIViewController {
             self.task.title = self.titleTextfield.text!
             self.task.contents = self.contentsTextView.text
             self.task.date = self.datePicker.date
+            self.task.category = self.categoryTextView.text!
             self.realm.add(self.task, update: true)
         }
         
