@@ -10,25 +10,46 @@ import UIKit
 import RealmSwift
 import UserNotifications
 
-class InputViewController: UIViewController {
+class InputViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource {
 
     @IBOutlet weak var titleTextfield: UITextField!
     @IBOutlet weak var contentsTextView: UITextView!
     @IBOutlet weak var datePicker: UIDatePicker!
     @IBOutlet weak var categoryTextView: UITextField!
+    @IBOutlet weak var addCategory: UIButton!
     
     var task: Task!
     let realm = try! Realm()
-    
+    var categoryList:[String] = []
+    var pickerView: UIPickerView = UIPickerView()
+    var categoryArray = try! Realm().objects(Category.self)
+        
     override func viewDidLoad() {
         super.viewDidLoad()
+        //カテゴリーリスト選択
+        var tempArray:[String] = []
+        for category in categoryArray {
+            tempArray.append(category.name)
+        }
+        categoryList = tempArray
         let tapGesture: UITapGestureRecognizer = UITapGestureRecognizer(target:self, action:#selector(dismissKeyboard))
         self.view.addGestureRecognizer(tapGesture)
+        pickerView.delegate = self
+        pickerView.dataSource = self
+        pickerView.showsSelectionIndicator = true
+
         titleTextfield.text = task.title
         contentsTextView.text = task.contents
         datePicker.date = task.date
-        categoryTextView.text = task.category
-        // Do any additional setup after loading the view.
+        
+        //カテゴリー選択の処理
+        let toolbar = UIToolbar(frame: CGRectMake(0, 0, 0, 35))
+        let doneItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(InputViewController.done))
+        let cancelItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(InputViewController.cancel))
+        toolbar.setItems([cancelItem, doneItem], animated: true)
+        
+        self.categoryTextView.inputView = pickerView
+        self.categoryTextView.inputAccessoryView = toolbar
     }
 
     override func didReceiveMemoryWarning() {
@@ -41,7 +62,10 @@ class InputViewController: UIViewController {
             self.task.title = self.titleTextfield.text!
             self.task.contents = self.contentsTextView.text
             self.task.date = self.datePicker.date
-            self.task.category = self.categoryTextView.text!
+            let cate = realm.objects(Category.self).filter("name contains 'Fido'")
+            cate.tasks.append(task)
+            
+            
             self.realm.add(self.task, update: true)
         }
         
@@ -49,6 +73,33 @@ class InputViewController: UIViewController {
         
         super.viewWillDisappear(animated)
     }
+    
+    //カテゴリー選択の処理
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 1
+    }
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        return categoryList.count
+    }
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        return categoryList[row]
+    }
+    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        self.categoryTextView.text = categoryList[row]
+    }
+    @objc func cancel() {
+        self.categoryTextView.text = ""
+        self.categoryTextView.endEditing(true)
+    }
+    @objc func done() {
+        self.categoryTextView.endEditing(true)
+    }
+    func CGRectMake(_ x: CGFloat, _ y: CGFloat, _ width: CGFloat, _ height: CGFloat) -> CGRect {
+        return CGRect(x: x, y: y, width: width, height: height)
+    }
+    
+
+
     // タスクのローカル通知を登録する
     func setNotification(task: Task) {
         let content = UNMutableNotificationContent()

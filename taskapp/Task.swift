@@ -15,9 +15,6 @@ class Task: Object {
     // タイトル
     @objc dynamic var title = ""
     
-    // カテゴリー
-    @objc dynamic var category = ""
-    
     // 内容
     @objc dynamic var contents = ""
     
@@ -27,6 +24,17 @@ class Task: Object {
     /**
      id をプライマリーキーとして設定
      */
+    override static func primaryKey() -> String? {
+        return "id"
+    }
+
+    @objc dynamic var owner: Category?
+}
+
+class Category: Object {
+    @objc dynamic var id = 0
+    @objc dynamic var name = ""
+    let tasks = List<Task>()
     override static func primaryKey() -> String? {
         return "id"
     }
